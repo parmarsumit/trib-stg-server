@@ -1,8 +1,8 @@
-# Docker container for Tibute
+# Docker container for Tribute
 
  This project is to run the tribute server in stg application as a Docker Container and access it from the host machine web browser.
  
-## Prerequisites:
+## Pre-requisites:
   
  Docker should be installed on the host machine(s). Please refer [Install docker](https://docs.docker.com/install/) for installation instructions.
  
