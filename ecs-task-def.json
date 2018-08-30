@@ -1,0 +1,17 @@
+{
+    "taskDefinition": {
+        "family": "tribute-server",
+        "containerDefinitions": [{
+            "name": "tribute-server",
+            "image": "933186250239.dkr.ecr.eu-west-1.amazonaws.com/tribute-server:latest",
+            "cpu": 100,
+            "portMappings": [{
+                "protocol": "tcp",
+                "containerPort": 80,
+                "hostPort": 80
+            }],
+            "memory": 128,
+            "essential": true
+        }]
+    }
+}
