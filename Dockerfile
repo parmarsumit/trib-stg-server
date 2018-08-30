@@ -1,10 +1,9 @@
 
 FROM ubuntu:latest
 RUN apt-get update -y && \
-    apt-get install -y python3-pip python3-pil python3-dev build-essential git curl wget 
-    # git clone https://github.com/Tribute-coop/server && \
-COPY server /server
-RUN cd server/ && \
+    apt-get install -y python3-pip python3-pil python3-dev build-essential git curl wget && \
+    git clone https://github.com/Tribute-coop/server && \
+    cd server/ && \
     ln -s /usr/bin/python3 /usr/local/bin/python && \
     pip3 install --upgrade pip && \
     pip install -e . && \
