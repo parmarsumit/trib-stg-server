@@ -7,7 +7,7 @@
             "cpu": 100,
             "portMappings": [{
                 "protocol": "tcp",
-                "containerPort": 80,
+                "containerPort": 9999,
                 "hostPort": 80
             }],
             "memory": 128,
