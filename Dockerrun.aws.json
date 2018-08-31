@@ -1,7 +1,7 @@
 {
     "AWSEBDockerrunVersion": "1",
     "Image": {
-        "Name": "tribute",
+        "Name": "933186250239.dkr.ecr.eu-west-1.amazonaws.com/tribute-server:latest",
         "Update": "true"
     },
     "Ports": [{
