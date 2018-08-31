@@ -1,8 +1,9 @@
 
 FROM ubuntu:latest
 RUN apt-get update -y && \
-    apt-get install -y python3-pip python3-pil python3-dev build-essential git curl wget 
-COPY server /server
+    apt-get install -y python3-pip python3-pil python3-dev build-essential git curl wget && \
+    ls -l
+COPY ./server /server
 WORKDIR /server
     # git clone https://github.com/Tribute-coop/server && \
 RUN pwd && \    
