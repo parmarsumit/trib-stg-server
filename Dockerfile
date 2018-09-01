@@ -14,5 +14,5 @@ RUN apt-get update -y && \
     
 WORKDIR /server
 
-CMD ["ilot", "serve" ,"--ip=0.0.0.0", "--port=9999"]
+CMD ["ilot", "serve" ,"--ip=0.0.0.0", "--port=9999", "--no-ssl" ]
 EXPOSE 9999
