@@ -3,15 +3,16 @@
     "volumes": [{
             "name": "app",
             "host": {
-                "sourcePath": "/media/cache"
-            }
-        },
-        {
-            "name": "nginx-proxy-conf",
-            "host": {
-                "sourcePath": "/var/app/current/proxy/conf.d"
+                "sourcePath": "/media"
             }
         }
+        // ,
+        // {
+        //     "name": "nginx-proxy-conf",
+        //     "host": {
+        //         "sourcePath": "/var/app/current/proxy/conf.d"
+        //     }
+        // }
     ],
     "containerDefinitions": [{
             "name": "app",
@@ -24,37 +25,38 @@
             "memory": 128,
             "mountPoints": [{
                 "sourceVolume": "app",
-                "containerPath": "/media/cache",
+                "containerPath": "/media",
                 "readOnly": true
             }]
-        },
-        {
-            "name": "nginx-proxy",
-            "image": "nginx",
-            "essential": true,
-            "memory": 128,
-            "portMappings": [{
-                "hostPort": 80,
-                "containerPort": 9999
-            }],
-            "links": [
-                "app"
-            ],
-            "mountPoints": [{
-                    "sourceVolume": "app",
-                    "containerPath": "/media/cache",
-                    "readOnly": true
-                },
-                {
-                    "sourceVolume": "nginx-proxy-conf",
-                    "containerPath": "/etc/nginx/conf.d",
-                    "readOnly": true
-                },
-                {
-                    "sourceVolume": "awseb-logs-nginx-proxy",
-                    "containerPath": "/var/log/nginx"
-                }
-            ]
         }
+        // ,
+        // {
+        //     "name": "nginx-proxy",
+        //     "image": "nginx",
+        //     "essential": true,
+        //     "memory": 128,
+        //     "portMappings": [{
+        //         "hostPort": 9999,
+        //         "containerPort": 9999
+        //     }],
+        //     "links": [
+        //         "app"
+        //     ],
+        //     "mountPoints": [{
+        //             "sourceVolume": "app",
+        //             "containerPath": "/media/cache",
+        //             "readOnly": true
+        //         },
+        //         {
+        //             "sourceVolume": "nginx-proxy-conf",
+        //             "containerPath": "/etc/nginx/conf.d",
+        //             "readOnly": true
+        //         },
+        //         {
+        //             "sourceVolume": "awseb-logs-nginx-proxy",
+        //             "containerPath": "/var/log/nginx"
+        //         }
+        //     ]
+        // }
     ]
 }
