@@ -9,5 +9,9 @@
         "HostPort": "80"
 
     }],
+    "Volumes": [{
+        "HostDirectory": "/media",
+        "ContainerDirectory": "/media"
+    }],
     "Logging": "/var/log/nginx"
 }
