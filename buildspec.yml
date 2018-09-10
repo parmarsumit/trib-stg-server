@@ -12,7 +12,6 @@ phases:
       - IMAGE_TAG=${COMMIT_HASH:=latest}
       - aws ec2 describe-instances --filters "Name=Name,Values=app-dev-2"
       - aws ecr batch-delete-image --repository-name tribute-server --image-ids  imageTag=latest
-      - aws elasticbeanstalk rebuild-environment --environment-id e-mbhpfrihw6
   build:
     commands:
       - echo Build started on `date`
