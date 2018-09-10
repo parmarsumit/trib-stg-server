@@ -5,13 +5,13 @@ phases:
     commands:
       - echo Logging in to Amazon ECR...
       - aws --version
-      - aws ecr batch-delete-image --repository-name tribute-server --image-ids  imageTag=latest  
+      - aws ecr batch-delete-image --repository-name tribute-server --image-ids  imageTag=latest
       - $(aws ecr get-login --region eu-west-1 --no-include-email)
       - IMAGE_REPO_NAME=tribute-server
       - REPOSITORY_URI=933186250239.dkr.ecr.eu-west-1.amazonaws.com/tribute-server
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
-      
+      - for i in `aws ec2 describe-instances --query 'Reservations[*].Instances[*].[InstanceId]' --filters "Name=tag:Name,Values=app-dev-2" --output text` ; do aws ec2 terminate-instances --instance-ids $i; done
       
   build:
     commands:
