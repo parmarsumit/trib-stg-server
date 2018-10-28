@@ -6,6 +6,7 @@ phases:
       - echo Logging in to Amazon ECR...
       - aws --version
       - aws ecr batch-delete-image --repository-name tribute-server --image-ids  imageTag=latest
+      - aws elasticbeanstalk swap-environment-cnames --source-environment-name app-dev-2 --destination-environment-name app-dev-1
       - $(aws ecr get-login --region eu-west-1 --no-include-email)
       - IMAGE_REPO_NAME=tribute-server
       - REPOSITORY_URI=933186250239.dkr.ecr.eu-west-1.amazonaws.com/tribute-server

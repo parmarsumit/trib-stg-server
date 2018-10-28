@@ -1,18 +1,18 @@
 
-FROM ubuntu:latest
+FROM ubuntu:16.04
+
 RUN apt-get update -y && \
-    apt-get install -y python3-pip python3-pil python3-dev build-essential git curl wget nfs-common && \
+    apt-get install -y python3 python3-pip python3-pil python3-dev build-essential git curl wget && \
     git clone https://github.com/Tribute-coop/server && \
     cd server/ && \
     ln -s /usr/bin/python3 /usr/local/bin/python && \
-    pip3 install --upgrade pip && \
-    pip install -e . && \
-    mkdir -p media/CACHE && \
-    ilot migrate && \
-    ilot update && \
-    ilot collectstatic  
-    
+    python3 -m pip install --upgrade pip && \
+    python3 -m pip install -e . && \
+    python3 -m ilot.manage migrate && \
+    python3 -m ilot.manage update && \
+    python3 -m ilot.manage collectstatic
+
 WORKDIR /server
 
-CMD ["ilot", "serve" ,"--ip=0.0.0.0", "--port=9999", "--no-ssl" ]
+CMD ["bash" "serve"]
 EXPOSE 9999
