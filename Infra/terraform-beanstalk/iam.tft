@@ -1,0 +1,323 @@
+resource "aws_iam_role_policy" "role-policy" {
+    name = "${var.tags["ApplicationName"]}-${var.tags["Version"]}-policy"
+    role = "${aws_iam_role.role.id}"
+    policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "elasticloadbalancing:DescribeInstanceHealth",
+        "ec2:Describe*",
+        "ec2:DescribeInstanceStatus",
+        "ec2:GetConsoleOutput",
+        "ec2:AssociateAddress",
+        "ec2:DescribeAddresses",
+        "ec2:DescribeSecurityGroups",
+        "sqs:GetQueueAttributes",
+        "sqs:GetQueueUrl",
+        "autoscaling:DescribeAutoScalingGroups",
+        "autoscaling:DescribeAutoScalingInstances",
+        "autoscaling:DescribeScalingActivities",
+        "autoscaling:DescribeNotificationConfigurations"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role" "role" {
+    name = "${var.tags["ApplicationName"]}-${var.tags["Version"]}-role"
+    assume_role_policy = <<EOF
+{
+  "Version": "2008-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role" "service-role" {
+    name = "${var.tags["ApplicationName"]}-${var.tags["Version"]}-service-role"
+    assume_role_policy = <<POLICY
+{
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "",
+        "Effect": "Allow",
+        "Principal": {
+          "Service": "elasticbeanstalk.amazonaws.com"
+        },
+        "Action": "sts:AssumeRole",
+        "Condition": {
+          "StringEquals": {
+            "sts:ExternalId": "elasticbeanstalk"
+          }
+        }
+      }
+    ]
+}
+POLICY
+}
+
+resource "aws_iam_role_policy" "web-worker-tier-policy" {
+    name       = "${var.tags["ApplicationName"]}-${var.tags["Version"]}-web-worker-tier-policy"
+    role      = "${aws_iam_role.role.name}"
+    policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "MetricsAccess",
+            "Action": [
+                "cloudwatch:PutMetricData"
+            ],
+            "Effect": "Allow",
+            "Resource": "*"
+        },
+        {
+            "Sid": "XRayAccess",
+            "Action": [
+                "xray:PutTraceSegments",
+                "xray:PutTelemetryRecords"
+            ],
+            "Effect": "Allow",
+            "Resource": "*"
+        },
+        {
+            "Sid": "QueueAccess",
+            "Action": [
+                "sqs:ChangeMessageVisibility",
+                "sqs:DeleteMessage",
+                "sqs:ReceiveMessage",
+                "sqs:SendMessage"
+            ],
+            "Effect": "Allow",
+            "Resource": "*"
+        },
+        {
+            "Sid": "BucketAccess",
+            "Action": [
+                "s3:Get*",
+                "s3:List*",
+                "s3:PutObject"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+                "arn:aws:s3:::elasticbeanstalk-*",
+                "arn:aws:s3:::elasticbeanstalk-*/*"
+            ]
+        },
+        {
+            "Sid": "DynamoPeriodicTasks",
+            "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:GetItem",
+                "dynamodb:PutItem",
+                "dynamodb:Query",
+                "dynamodb:Scan",
+                "dynamodb:UpdateItem"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+                "arn:aws:dynamodb:*:*:table/*-stack-AWSEBWorkerCronLeaderRegistry*"
+            ]
+        },
+        {
+            "Sid": "CloudWatchLogsAccess",
+            "Action": [
+                "logs:PutLogEvents",
+                "logs:CreateLogStream"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+                "arn:aws:logs:*:*:log-group:/aws/elasticbeanstalk*"
+            ]
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "beanstalk-service-enhanced-health-policy" {
+    name       = "${var.tags["ApplicationName"]}-${var.tags["Version"]}-beanstalk-service-enhanced-health-policy"
+    role      = "${aws_iam_role.service-role.name}"
+    policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowCloudformationOperationsOnElasticBeanstalkStacks",
+            "Effect": "Allow",
+            "Action": [
+                "cloudformation:*"
+            ],
+            "Resource": [
+                "arn:aws:cloudformation:*:*:stack/awseb-*",
+                "arn:aws:cloudformation:*:*:stack/eb-*"
+            ]
+        },
+        {
+            "Sid": "AllowDeleteCloudwatchLogGroups",
+            "Effect": "Allow",
+            "Action": [
+                "logs:DeleteLogGroup"
+            ],
+            "Resource": [
+                "arn:aws:logs:*:*:log-group:/aws/elasticbeanstalk*"
+            ]
+        },
+        {
+            "Sid": "AllowS3OperationsOnElasticBeanstalkBuckets",
+            "Effect": "Allow",
+            "Action": [
+                "s3:*"
+            ],
+            "Resource": [
+                "arn:aws:s3:::elasticbeanstalk-*",
+                "arn:aws:s3:::elasticbeanstalk-*/*"
+            ]
+        },
+        {
+            "Sid": "AllowOperations",
+            "Effect": "Allow",
+            "Action": [
+                "autoscaling:AttachInstances",
+                "autoscaling:CreateAutoScalingGroup",
+                "autoscaling:CreateLaunchConfiguration",
+                "autoscaling:DeleteLaunchConfiguration",
+                "autoscaling:DeleteAutoScalingGroup",
+                "autoscaling:DeleteScheduledAction",
+                "autoscaling:DescribeAccountLimits",
+                "autoscaling:DescribeAutoScalingGroups",
+                "autoscaling:DescribeAutoScalingInstances",
+                "autoscaling:DescribeLaunchConfigurations",
+                "autoscaling:DescribeLoadBalancers",
+                "autoscaling:DescribeNotificationConfigurations",
+                "autoscaling:DescribeScalingActivities",
+                "autoscaling:DescribeScheduledActions",
+                "autoscaling:DetachInstances",
+                "autoscaling:PutScheduledUpdateGroupAction",
+                "autoscaling:ResumeProcesses",
+                "autoscaling:SetDesiredCapacity",
+                "autoscaling:SuspendProcesses",
+                "autoscaling:TerminateInstanceInAutoScalingGroup",
+                "autoscaling:UpdateAutoScalingGroup",
+                "cloudwatch:PutMetricAlarm",
+                "ec2:AssociateAddress",
+                "ec2:AllocateAddress",
+                "ec2:AuthorizeSecurityGroupEgress",
+                "ec2:AuthorizeSecurityGroupIngress",
+                "ec2:CreateSecurityGroup",
+                "ec2:DeleteSecurityGroup",
+                "ec2:DescribeAccountAttributes",
+                "ec2:DescribeAddresses",
+                "ec2:DescribeImages",
+                "ec2:DescribeInstances",
+                "ec2:DescribeInstanceStatus",
+                "ec2:DescribeKeyPairs",
+                "ec2:DescribeSecurityGroups",
+                "ec2:DescribeSnapshots",
+                "ec2:DescribeSubnets",
+                "ec2:DescribeVpcs",
+                "ec2:DisassociateAddress",
+                "ec2:GetConsoleOutput",
+                "ec2:ReleaseAddress",
+                "ec2:RevokeSecurityGroupEgress",
+                "ec2:RevokeSecurityGroupIngress",
+                "ec2:TerminateInstances",
+                "ecs:CreateCluster",
+                "ecs:DeleteCluster",
+                "ecs:DescribeClusters",
+                "ecs:RegisterTaskDefinition",
+                "elasticbeanstalk:*",
+                "elasticloadbalancing:ApplySecurityGroupsToLoadBalancer",
+                "elasticloadbalancing:ConfigureHealthCheck",
+                "elasticloadbalancing:CreateLoadBalancer",
+                "elasticloadbalancing:DeleteLoadBalancer",
+                "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
+                "elasticloadbalancing:DescribeInstanceHealth",
+                "elasticloadbalancing:DescribeLoadBalancers",
+                "elasticloadbalancing:DescribeTargetHealth",
+                "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
+                "elasticloadbalancing:DescribeTargetGroups",
+                "elasticloadbalancing:RegisterTargets",
+                "elasticloadbalancing:DeregisterTargets",
+                "iam:ListRoles",
+                "iam:PassRole",
+                "logs:CreateLogGroup",
+                "logs:PutRetentionPolicy",
+                "rds:DescribeDBEngineVersions",
+                "rds:DescribeDBInstances",
+                "rds:DescribeOrderableDBInstanceOptions",
+                "s3:CopyObject",
+                "s3:GetObject",
+                "s3:GetObjectAcl",
+                "s3:GetObjectMetadata",
+                "s3:ListBucket",
+                "s3:listBuckets",
+                "s3:ListObjects",
+                "sns:CreateTopic",
+                "sns:GetTopicAttributes",
+                "sns:ListSubscriptionsByTopic",
+                "sns:Subscribe",
+                "sns:SetTopicAttributes",
+                "sqs:GetQueueAttributes",
+                "sqs:GetQueueUrl",
+                "codebuild:CreateProject",
+                "codebuild:DeleteProject",
+                "codebuild:BatchGetBuilds",
+                "codebuild:StartBuild"
+            ],
+            "Resource": [
+                "*"
+            ]
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "SplunkForwarderConfigS3" {
+    name = "${var.tags["ApplicationName"]}-${var.tags["Version"]}-SplunkForwarderConfigS3"
+    role = "${aws_iam_role.role.id}"
+    policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "FederatedSplunks3bucket",
+            "Effect": "Allow",
+            "Action": [
+                "s3:Get*",
+                "s3:List*"
+            ],
+            "Resource": [
+                "arn:aws:s3:::dnb-splunk-forwarder-spl/*",
+                "arn:aws:s3:::dnb-splunk-forwarder-spl"
+            ]
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_instance_profile" "instance-profile" {
+  name  = "${var.tags["ApplicationName"]}-${var.tags["Version"]}-instance-profile"
+  role = "${aws_iam_role.role.name}"
+}

@@ -1,0 +1,194 @@
+resource "aws_cloudwatch_metric_alarm" "InstancesHighAlarm" {
+  alarm_name                = "${var.tags["ApplicationName"]}_${var.tags["Version"]}_InstancesHighAlarm"
+  comparison_operator       = "GreaterThanThreshold"
+  evaluation_periods        = "1"
+  metric_name               = "InstancesOk"
+  namespace                 = "AWS/ElasticBeanstalk"
+  period                    = "60"
+  statistic                 = "Maximum"
+  threshold                 = "5"
+  alarm_description         = "Alarm if Instance Count is > 5"
+  insufficient_data_actions = []
+  alarm_actions             = ["${aws_sns_topic.default.arn}"]
+
+  dimensions {
+    EnvironmentName = "${aws_elastic_beanstalk_environment.default.name}"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "InstancesLowAlarm" {
+  alarm_name                = "${var.tags["ApplicationName"]}_${var.tags["Version"]}_InstancesLowAlarm"
+  comparison_operator       = "LessThanThreshold"
+  evaluation_periods        = "1"
+  metric_name               = "InstancesOk"
+  namespace                 = "AWS/ElasticBeanstalk"
+  period                    = "60"
+  statistic                 = "Maximum"
+  threshold                 = "4"
+  alarm_description         = "Alarm if Instance Count is < 4"
+  insufficient_data_actions = []
+  alarm_actions             = ["${aws_sns_topic.default.arn}"]
+
+  dimensions {
+    EnvironmentName = "${aws_elastic_beanstalk_environment.default.name}"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "ApplicationRequestsTotal" {
+  alarm_name                = "${var.tags["ApplicationName"]}_${var.tags["Version"]}_ApplicationRequestsTotal"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = "1"
+  metric_name               = "ApplicationRequestsTotal"
+  namespace                 = "AWS/ElasticBeanstalk"
+  period                    = "3600"
+  statistic                 = "Maximum"
+  threshold                 = "150000"
+  alarm_description         = "Alarm if Application Requests Total is >= 150k per hour"
+  insufficient_data_actions = []
+  alarm_actions             = ["${aws_sns_topic.default.arn}"]
+
+  dimensions {
+    EnvironmentName = "${aws_elastic_beanstalk_environment.default.name}"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "EMSApplicationRequests5xx" {
+  alarm_name                = "${var.tags["ApplicationName"]}_${var.tags["Version"]}_EMSApplicationRequests5xx"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = "1"
+  metric_name               = "EMSApplicationRequests5xx"
+  namespace                 = "AWS/ElasticBeanstalk"
+  period                    = "60"
+  statistic                 = "Maximum"
+  threshold                 = "15"
+  alarm_description         = "Alarm if ApplicationRequests5xx >= 15"
+  insufficient_data_actions = []
+  alarm_actions             = ["${aws_sns_topic.default.arn}"]
+
+  dimensions {
+    EnvironmentName = "${aws_elastic_beanstalk_environment.default.name}"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "EnvironmentHealth" {
+  alarm_name                = "${var.tags["ApplicationName"]}_${var.tags["Version"]}_EnvironmentHealth"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = "1"
+  metric_name               = "EnvironmentHealth"
+  namespace                 = "AWS/ElasticBeanstalk"
+  period                    = "60"
+  statistic                 = "Maximum"
+  threshold                 = "25"
+  alarm_description         = "Alarm if EnvironmentHealth in Severe status"
+  insufficient_data_actions = []
+  alarm_actions             = ["${aws_sns_topic.default.arn}"]
+
+  dimensions {
+    EnvironmentName = "${aws_elastic_beanstalk_environment.default.name}"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "CPUAlarmHigh" {
+  alarm_name                = "${var.tags["ApplicationName"]}_${var.tags["Version"]}_CPUAlarmHigh"
+  comparison_operator       = "GreaterThanThreshold"
+  evaluation_periods        = "1"
+  metric_name               = "CPUAlarmHigh"
+  namespace                 = "AWS/EC2"
+  period                    = "300"
+  statistic                 = "Average"
+  threshold                 = "80"
+  unit                      = "Percent"
+  alarm_description         = "Alarm if CPU usage is greater than 80% for 300 seconds"
+  insufficient_data_actions = []
+  alarm_actions             = ["${aws_sns_topic.default.arn}"]
+
+  dimensions {
+    AutoScalingGroupName = "${aws_elastic_beanstalk_environment.default.autoscaling_groups[0]}"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "ElbAsScaleDown" {
+  alarm_name                = "${var.tags["ApplicationName"]}_${var.tags["Version"]}_ElbAsScaleDown"
+  comparison_operator       = "GreaterThanThreshold"
+  evaluation_periods        = "1"
+  metric_name               = "GroupTerminatingInstances"
+  namespace                 = "AWS/AutoScaling"
+  period                    = "3600"
+  statistic                 = "Sum"
+  threshold                 = "2"
+  alarm_description         = "Alarm when sum of terminated instances in 1 hour is greater than 2"
+  insufficient_data_actions = []
+  alarm_actions             = ["${aws_sns_topic.default.arn}"]
+
+  dimensions {
+    AutoScalingGroupName = "${aws_elastic_beanstalk_environment.default.autoscaling_groups[0]}"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "GroupPendingInstances" {
+  alarm_name                = "${var.tags["ApplicationName"]}_${var.tags["Version"]}_GroupPendingInstances"
+  comparison_operator       = "GreaterThanThreshold"
+  evaluation_periods        = "1"
+  metric_name               = "GroupPendingInstances"
+  namespace                 = "AWS/AutoScaling"
+  period                    = "3600"
+  statistic                 = "Sum"
+  threshold                 = "2"
+  alarm_description         = "Alarm when sum of terminated instances in 1 hour is greater than 2"
+  insufficient_data_actions = []
+  alarm_actions             = ["${aws_sns_topic.default.arn}"]
+
+  dimensions {
+    AutoScalingGroupName = "${aws_elastic_beanstalk_environment.default.autoscaling_groups[0]}"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "MaxResponseTime" {
+  alarm_name                = "${var.tags["ApplicationName"]}_${var.tags["Version"]}_MaxResponseTime"
+  comparison_operator       = "GreaterThanThreshold"
+  evaluation_periods        = "1"
+  metric_name               = "Latency"
+  namespace                 = "AWS/ELB"
+  period                    = "3600"
+  statistic                 = "Maximum"
+  threshold                 = "2"
+  alarm_description         = "Alarm when Max response time is greater than 2000 Miliseconds"
+  insufficient_data_actions = []
+  alarm_actions             = ["${aws_sns_topic.default.arn}"]
+
+  dimensions {
+    AutoScalingGroupName = "${aws_elastic_beanstalk_environment.default.load_balancers[0]}"
+  }
+}
+
+# resource "aws_cloudwatch_dashboard" "dashboard" {
+#   dashboard_name = "${var.tags["ApplicationName"]}_${var.tags["Version"]}"
+
+
+#   dashboard_body = <<EOF
+# {
+#   "widgets": [
+#     {
+#        "type":"metric",
+#        "width":12,
+#        "height":6,
+#        "properties":${module.cpu_utilization.properties_json}
+#     },
+
+
+#     {
+#        "type":"metric",
+#        "width":12,
+#        "height":6,
+#        "properties": {
+#          "metrics": ${module.cpu_utilization.metrics_json},
+#          "stat":"Average",
+#          "region":"us-east-1",
+#          "title":"Metrics example, set your own properties."         
+#        }
+#     },
+#   ]
+# }
+# EOF
+# }
+

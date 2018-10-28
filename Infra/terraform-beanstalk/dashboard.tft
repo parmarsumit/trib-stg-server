@@ -1,0 +1,74 @@
+resource "aws_cloudwatch_dashboard" "main" {
+  dashboard_name = "${var.tags["ApplicationName"]}-${var.tags["Version"]}-Dashboard"
+
+  dashboard_body = <<EOF
+{
+    "widgets": [
+        {
+            "type": "metric",
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 6,
+            "styles": "undefined",
+            "properties": {
+                "view": "timeSeries",
+                "stacked": false,
+                "metrics": [
+                    [ "AWS/ElasticBeanstalk", "EnvironmentHealth", "EnvironmentName", "${var.tags["ApplicationName"]}" ],
+                    [ ".", "InstancesOk", ".", "." ],
+                    [ ".", "ApplicationRequests5xx", ".", "." ],
+                    [ ".", "ApplicationRequestsTotal", ".", "." ]
+                ],
+                "region": "eu-west-1"
+            }
+        },
+        {
+            "type": "metric",
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 6,
+            "styles": "undefined",
+            "properties": {
+                "view": "timeSeries",
+                "stacked": false,
+                "metrics": [
+                    [ "AWS/ELB", "BackendConnectionErrors", "LoadBalancerName", "${aws_elastic_beanstalk_environment.default.load_balancers[0]}" ],
+                    [ ".", "HealthyHostCount", ".", "." ],
+                    [ ".", "EstimatedProcessedBytes", ".", "." ],
+                    [ ".", "UnHealthyHostCount", ".", "." ],
+                    [ ".", "EstimatedALBConsumedLCUs", ".", "." ],
+                    [ ".", "EstimatedALBNewConnectionCount", ".", "." ],
+                    [ ".", "EstimatedALBActiveConnectionCount", ".", "." ]
+                ],
+                "region": "eu-west-1"
+            }
+        },
+        {
+          "type": "metric",
+          "x": 6,
+          "y": 0,
+          "width": 6,
+          "height": 6,
+          "styles": "undefined",
+          "properties": {
+              "view": "timeSeries",
+              "stacked": false,
+              "metrics": [
+                  [ "AWS/AutoScaling", "GroupStandbyInstances", "AutoScalingGroupName", "${aws_elastic_beanstalk_environment.default.autoscaling_groups[0]}" ],
+                  [ ".", "GroupMinSize", ".", "." ],
+                  [ ".", "GroupDesiredCapacity", ".", "." ],
+                  [ ".", "GroupMaxSize", ".", "." ],
+                  [ ".", "GroupPendingInstances", ".", "." ],
+                  [ ".", "GroupInServiceInstances", ".", "." ],
+                  [ ".", "GroupTotalInstances", ".", "." ],
+                  [ ".", "GroupTerminatingInstances", ".", "." ]
+              ],
+              "region": "eu-west-1"
+          }
+        }
+    ]
+}
+ EOF
+}

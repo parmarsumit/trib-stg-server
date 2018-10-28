@@ -1,0 +1,11 @@
+data "aws_region" "current" {
+  current = true
+}
+
+resource "aws_sns_topic" "default" {
+  name = "${var.tags["ApplicationName"]}-${var.tags["Version"]}-notify-sns"
+  
+  provisioner "local-exec" {
+    command = "aws sns subscribe --topic-arn ${self.arn} --protocol email --notification-endpoint ${var.tags["CreatedFor"]} --region ${data.aws_region.current.name}"
+  }
+}

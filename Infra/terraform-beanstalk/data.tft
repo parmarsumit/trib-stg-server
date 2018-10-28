@@ -1,0 +1,4 @@
+data "aws_acm_certificate" "dns_cname" {
+  #domain = "${aws_route53_record.cname.fqdn}"
+  domain = "*.${var.tags["Environment"]}.${var.dns_name}"
+}
